@@ -1,0 +1,47 @@
+{
+  "name": "storage-queue-node-getting-started",
+  "author": {
+    "name": "Microsoft Corporation"
+  },
+  "version": "0.0.1",
+  "description": "Basic Operations with Azure Storage Queue Service",
+  "tags": [
+    "azure",
+    "storage",
+    "sample"
+  ],
+  "keywords": [
+    "node",
+    "azure",
+    "storage"
+  ],
+  "main": "./queueSample.js",
+  "engines": {
+    "node": ">= 0.8.26"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/Azure-Samples/storage-queue-node-getting-started/blob/master/LICENSE"
+    }
+  ],
+  "dependencies": {
+    "request": "~2.69.0",
+    "azure-storage": "0.10.0"
+  },
+  "devDependencies": {
+    "jshint": ">= 2.1.4"
+  },
+  "homepage": "https://github.com/Azure-Samples/storage-queue-node-getting-started",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Azure-Samples/storage-queue-node-getting-started.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Azure-Samples/storage-queue-node-getting-started/issues"
+  },
+  "scripts": {
+    "check": "jshint queueSample.js"
+  },
+  "readmeFilename": "README.md"
+}
