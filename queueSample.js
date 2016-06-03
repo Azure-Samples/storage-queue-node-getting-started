@@ -39,38 +39,35 @@ RunQueueSamples();
 
 function RunQueueSamples() {
   /**
-   * Instructions: This sample can be run using either the Azure Storage Emulator (https://go.microsoft.com/fwlink/?linkid=717179&clcid=0x409)
-   * or by updating the app.config file with your account name and key.
+   * Instructions: This sample can be run using either the Azure Storage Emulator that installs as part of the Microsoft Azure SDK, which is available in Windows only - or by  
+   * updating the app.config file with your connection string.
    *
-   * To run the sample using the Storage Emulator (default option, on Windows only)
+   * To run the sample using the Storage Emulator (Microsoft Azure SDK)
    *      Start the Azure Storage Emulator (once only) by pressing the Start button or the Windows key and searching for it
    *      by typing "Azure Storage Emulator". Select it from the list of applications to start it.
    * 
    * To run the sample using the Storage Service
-   *      Open the app.config file and comment out the setting for the emulator ("useDevelopmentStorage":true), 
-   *      uncomment the "accountName" and "accountKey" for the storage service and set the account credential.
+   *      Open the app.config file and comment out the connection string for the emulator ("useDevelopmentStorage":true) and
+   *      set the connection string for the storage service.
    */
 
 
-  var counter = 0;
-  
-  basicScenarios.forEach(function(scenario) {
-    console.log(scenario.message);
-    
-    scenario.action(function(error) {
-      if(error) throw error;
-      
-      counter++;
-      
-      if(counter == basicScenarios.length) {
-        advancedScenarios.forEach(function(scenario) {
-          console.log(scenario.message);
-    
-          scenario.action(function(error) {
-            if(error) throw error;
-          })
-        })
+  var scenarios = basicScenarios.concat(advancedScenarios);
+
+  var current = 0;
+
+  var callback = function (error) {
+    if (error) {
+      throw error;
+    } else {
+      console.log(scenarios[current].message);
+
+      current++;
+      if (current < scenarios.length) {
+        scenarios[current].action(callback);
       }
-    })
-  })
+    }
+  };
+
+  scenarios[current].action(callback);
 }
