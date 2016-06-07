@@ -41,24 +41,40 @@ function advancedSamples() {
 
 // Set Cors Properties (Ese lo podes copiar del blob)
 function setCors(callback) {
-    
-    queueService.getServiceProperties(function (error, properties) {
-        if (error) return callback(error);
-        
-        properties.Cors = {
-            CorsRule: [{
-                    AllowedOrigins: ['*'],
-                    AllowedMethods: ['POST', 'GET', 'HEAD', 'PUT'],
-                    AllowedHeaders: ['*'],
-                    ExposedHeaders: ['*'],
-                    MaxAgeInSeconds: 3600
-                }]
-        };
-        
-        queueService.setServiceProperties(properties, function (error) {
-            return callback(error);
-        });
+
+  console.log('Getting service properties');
+  queueService.getServiceProperties(function (error, properties) {
+    if (error) return callback(error);
+
+    console.log('Setting Cors rules in the service properties');
+
+    // Keeps the original Cors rules
+    var originalCors = properties.Cors;
+
+    properties.Cors = {
+      CorsRule: [{
+        AllowedOrigins: ['*'],
+        AllowedMethods: ['POST', 'GET', 'HEAD', 'PUT'],
+        AllowedHeaders: ['*'],
+        ExposedHeaders: ['*'],
+        MaxAgeInSeconds: 3600
+      }]
+    };
+
+    queueService.setServiceProperties(properties, function (error) {
+      if (error) return callback(error);
+
+      console.log('Cors rules set successfuly');
+
+      // reverts the cors rules back to the original ones so they do not get corrupted by the ones set in this sample
+      properties.Cors = originalCors;
+
+      queueService.setServiceProperties(properties, function (error) {
+        return callback(error);
+      });
+
     });
+  });
 }
 
 module.exports = advancedSamples();
