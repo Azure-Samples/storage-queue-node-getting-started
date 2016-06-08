@@ -95,6 +95,8 @@ function queueOperations(callback) {
   function listQueues(queueService, prefix, token, options, callback) {
     // return results by segment and recursively invoke
     queueService.listQueuesSegmentedWithPrefix(prefix, token, options, function (error, result) {
+      if (error) return callback(error);
+
       queues.push.apply(queues, result.entries);
       token = result.continuationToken;
 
@@ -136,6 +138,9 @@ function queueMessageOperations(callback) {
         // By default, a single message is retrieved from the queue with this operation.
         // Please refer to http://azure.github.io/azure-storage-node/QueueService.html#getMessages for more options.
         queueService.getMessages(queueName, function (error, messages) {
+
+          if (error) return callback(error);
+
           // The messages will be invisible for further dequeueing for 30 seconds (by default)
           // The message text is available in messages[0].messagetext
           console.log('QueueMessageOperations: Message "' + messages[0].messageText + '" has been dequeued');
