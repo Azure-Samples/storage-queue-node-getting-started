@@ -56,38 +56,54 @@ function queueOperations(callback) {
 
   // Create several queues.
   // Use createQueueIfNotExists to create a queue only if it does not already exist.
-  var queueName = queueNamePrefix + (id++);
-  queueService.createQueueIfNotExists(queueName, function (error, result, response) {
+  var queueNameA = queueNamePrefix + (id++);
+  queueService.createQueueIfNotExists(queueNameA, function (error, result, response) {
     if (error) return callback(error);
 
-    console.log('QueueOperations: Queue ' + queueName + ' successfully created');
+    console.log('QueueOperations: Queue ' + queueNameA + ' successfully created');
 
-    queueName = queueNamePrefix + (id++);
-    queueService.createQueueIfNotExists(queueName, function (error, result, response) {
+    var queueNameB = queueNamePrefix + (id++);
+    queueService.createQueueIfNotExists(queueNameB, function (error, result, response) {
       if (error) return callback(error);
 
-      console.log('QueueOperations: Queue ' + queueName + ' successfully created');
+      console.log('QueueOperations: Queue ' + queueNameB + ' successfully created');
 
-      queueName = queueNamePrefix + (id++);
-      queueService.createQueueIfNotExists(queueName, function (error, result, response) {
+      queueNameC = queueNamePrefix + (id++);
+      queueService.createQueueIfNotExists(queueNameC, function (error, result, response) {
         if (error) return callback(error);
 
-        console.log('QueueOperations: Queue ' + queueName + ' successfully created');
+        console.log('QueueOperations: Queue ' + queueNameC + ' successfully created');
 
         // List all queues for a storage account.
         // Specify null for the continuationToken and options. For more on this, please check https://msdn.microsoft.com/en-us/library/azure/dd179363.aspx
         var continuationToken = null;
         var option = { maxResults: 2, include: 'metadata' };
         listQueues(queueService, queueNamePrefix, continuationToken, option, function (error, result) {
-          for (var i = 0; i < result.length; i++) {
-            console.log(util.format('QueueOperations: Retrieved - %s'), result[i].name);
-          }
+          if (error) callback(error);
 
-          queueService.deleteQueue(queueName, function (error) {
-            callback(error);
+          result.forEach(function (queue, index) {
+            console.log(util.format('QueueOperations: Retrieved - %s'), queue.name);
+          })
+
+          queueService.deleteQueue(queueNameA, function (error) {
+            if (error) callback(error);
+
+            console.log('QueueOperations: Queue ' + queueNameA + ' successfully deleted');
+
+            queueService.deleteQueue(queueNameB, function (error) {
+              if (error) callback(error);
+
+              console.log('QueueOperations: Queue ' + queueNameB + ' successfully deleted');
+              queueService.deleteQueue(queueNameC, function (error) {
+
+                if (!error)
+                  console.log('QueueOperations: Queue ' + queueNameC + ' successfully deleted');
+
+                callback(error);
+              })
+            })
           })
         });
-
       });
     });
   });
