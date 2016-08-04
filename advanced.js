@@ -34,19 +34,32 @@ function advancedSamples() {
 
   return scenarios = [
     {
-      action: setCors,
-      message: 'Set CORS\n'
-    }];
+      action: corsRules,
+      message: 'Queue CORS Sample\n'
+    },
+    {
+      action: serviceProperties,
+      message: 'Queue Service Properties Sample\n'
+    },
+    {
+      action: queueMetadata,
+      message: 'Queue Metadata Sample\n'
+    },
+    {
+      action: queueAcl,
+      message: 'Queue Access Policy Sample\n'
+    }
+    ];
 }
 
-// Set Cors Properties (Ese lo podes copiar del blob)
-function setCors(callback) {
+// Get Cors properties, change them and revert back to original
+function corsRules(callback) {
 
-  console.log('Getting service properties');
+  console.log('Get service properties');
   queueService.getServiceProperties(function (error, properties) {
     if (error) return callback(error);
 
-    console.log('Setting Cors rules in the service properties');
+    console.log('Set Cors rules in the service properties');
 
     // Keeps the original Cors rules
     var originalCors = properties.Cors;
@@ -73,6 +86,144 @@ function setCors(callback) {
         return callback(error);
       });
 
+    });
+  });
+}
+
+
+// Manage logging and metrics service properties
+function serviceProperties(callback) {
+  // Create a blob client for interacting with the blob service from connection string
+  // How to create a storage connection string - http://msdn.microsoft.com/en-us/library/azure/ee758697.aspx
+  var blobService = storage.createBlobService(config.connectionString);
+
+  console.log('Get service properties');
+  blobService.getServiceProperties(function (error, properties) {
+    if (error) return callback(error);
+
+    var originalProperties = properties;
+
+    properties = serviceProperties = {
+      Logging: {
+        Version: '1.0',
+        Delete: true,
+        Read: true,
+        Write: true,
+        RetentionPolicy: {
+          Enabled: true,
+          Days: 10,
+        },
+      },
+      HourMetrics: {
+        Version: '1.0',
+        Enabled: true,
+        IncludeAPIs: true,
+        RetentionPolicy: {
+          Enabled: true,
+          Days: 10,
+        },
+      },
+      MinuteMetrics: {
+        Version: '1.0',
+        Enabled: true,
+        IncludeAPIs: true,
+        RetentionPolicy: {
+          Enabled: true,
+          Days: 10,
+        },
+      }
+    };
+
+    console.log('Set service properties');
+    blobService.setServiceProperties(properties, function (error) {
+      if (error) return callback(error);
+
+      // reverts the cors rules back to the original ones so they do not get corrupted by the ones set in this sample
+      blobService.setServiceProperties(originalProperties, function (error) {
+        return callback(error);
+      });
+    });
+  });
+}
+
+// Retrieve statistics related to replication for the Queue service
+function serviceStats(callback) {
+  
+  console.log('Get service statistics');
+  queueService.getServiceStats(function (error, serviceStats){
+    if (error) return callback(error);
+
+    callback(null);
+  });
+
+}
+
+// Manage queue user-defined metadata
+function queueMetadata(callback) {
+  
+  var queueName = queueNamePrefix + "myqueueformetadata";
+  var metadata = { color: 'blue', foo: 'Bar' };
+
+  console.log('Create queue');
+  queueService.createQueueIfNotExists(queueName, function (error) {
+    if (error) return callback(error);
+
+    console.log('Set queue metadata');
+    queueService.setQueueMetadata(queueName, metadata, function (error) {
+      if (error) return callback(error);
+
+      console.log('Get queue metadata');
+      queueService.getQueueMetadata(queueName, function (error, queue) {
+        if (error) return callback(error);
+        
+        console.log(' color: ' + queue.metadata.color);
+        console.log(' foo: ' + queue.metadata.foo);
+
+        console.log('Delete queue');
+        queueService.deleteQueue(queueName, function () {
+          callback(error);
+        });
+      });
+    });
+  });
+}
+
+// Manage access policies of the queue
+function queueAcl(callback) {
+  var queueName = queueNamePrefix + "myqueueforacl";
+
+  console.log('Create queue');
+  queueService.createQueueIfNotExists(queueName, function() {
+    
+    // Set access policy
+    var expiryDate = new Date();
+    expiryDate.setMinutes(expiryDate.getMinutes() + 10);
+    var id = 'sampleIDForQueuePolicy';
+
+    var sharedAccessPolicy = {
+      sampleIDForQueuePolicy: {
+        Permissions: storage.QueueUtilities.SharedAccessPermissions.PROCESS,
+        Expiry: expiryDate
+      }
+    };
+
+    console.log('Set queue access policy');
+    queueService.setQueueAcl(queueName, sharedAccessPolicy, function (error, result, response) {
+      if (error) return callback(error);
+
+      // Get access policy
+      console.log('Get queue access policy');
+      queueService.getQueueAcl(queueName, function(error, result, response) {
+        if (error) return callback(error);
+
+        console.log(' Permissions: ' + result.signedIdentifiers.sampleIDForQueuePolicy.Permissions);
+        console.log(' Expiry: ' + result.signedIdentifiers.sampleIDForQueuePolicy.Expiry.toISOString());
+
+        console.log('Delete queue');
+        queueService.deleteQueue(queueName, function () {
+          callback(error);
+        });
+      });
     });
   });
 }

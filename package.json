@@ -27,7 +27,7 @@
   ],
   "dependencies": {
     "request": "~2.69.0",
-    "azure-storage": "0.10.0"
+    "azure-storage": "~1.0"
   },
   "devDependencies": {
     "jshint": ">= 2.1.4"
